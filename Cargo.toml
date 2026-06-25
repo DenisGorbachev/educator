@@ -1,11 +1,11 @@
 [package]
-name = "rust-private-cli-template"
+name = "educator"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.93.1"
-description = "Rust private CLI template"
-homepage = "https://github.com/DenisGorbachev/rust-private-cli-template"
-repository = "https://github.com/DenisGorbachev/rust-private-cli-template"
+description = ""
+homepage = "https://github.com/DenisGorbachev/educator"
+repository = "https://github.com/DenisGorbachev/educator"
 readme = "README.md"
 keywords = []
 categories = []
@@ -30,7 +30,7 @@ exclude = [
 ]
 
 [package.metadata.details]
-title = "Rust private CLI template"
+title = ""
 tagline = ""
 summary = ""
 announcement = ""
@@ -58,3 +58,9 @@ stub-macro = { version = "0.2.1" }
 subtype = { git = "https://github.com/DenisGorbachev/subtype" }
 thiserror = "2.0.17"
 tokio = { version = "1.39.2", features = ["macros", "fs", "net", "rt", "rt-multi-thread"] }
+
+
+
+
+
+

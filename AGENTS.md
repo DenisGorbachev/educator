@@ -581,6 +581,8 @@ A struct that contains fields for CLI arguments.
 * Must have a name that is a concatenation of all command names leading up to and including this command name, and ends with `Command` (see example above)
 * Must derive `clap::Parser`
 * Must be attached to a parent module: if it's a top-level command: `src/lib.rs`, else: `src/command.rs`
+* For each field:
+  * If the field has a collection type (e.g. `Vec`), then it must have attribute `num_args = 1..`
 * May contain a `subcommand` field annotated with `#[command(subcommand)]`
 * Must have a `pub async fn run`
   * Must return a `Result` with `ExitCode`
@@ -2052,6 +2054,8 @@ A struct that contains fields for CLI arguments.
 * Must have a name that is a concatenation of all command names leading up to and including this command name, and ends with `Command` (see example above)
 * Must derive `clap::Parser`
 * Must be attached to a parent module: if it's a top-level command: `src/lib.rs`, else: `src/command.rs`
+* For each field:
+  * If the field has a collection type (e.g. `Vec`), then it must have attribute `num_args = 1..`
 * May contain a `subcommand` field annotated with `#[command(subcommand)]`
 * Must have a `pub async fn run`
   * Must return a `Result` with `ExitCode`
@@ -2092,13 +2096,13 @@ Proxy command example:
 
 ```toml
 [package]
-name = "rust-private-cli-template"
+name = "educator"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.93.1"
-description = "Rust private CLI template"
-homepage = "https://github.com/DenisGorbachev/rust-private-cli-template"
-repository = "https://github.com/DenisGorbachev/rust-private-cli-template"
+description = ""
+homepage = "https://github.com/DenisGorbachev/educator"
+repository = "https://github.com/DenisGorbachev/educator"
 readme = "README.md"
 keywords = []
 categories = []
@@ -2123,7 +2127,7 @@ exclude = [
 ]
 
 [package.metadata.details]
-title = "Rust private CLI template"
+title = ""
 tagline = ""
 summary = ""
 announcement = ""
@@ -2161,8 +2165,8 @@ tokio = { version = "1.39.2", features = ["macros", "fs", "net", "rt", "rt-multi
 if_missing = "error"
 
 [providers]
-keychain = { type = "keychain", service = "rust-private-cli-template" }
-pass = { type = "password-store", prefix = "rust-private-cli-template/" }
+keychain = { type = "keychain", service = "educator" }
+pass = { type = "password-store", prefix = "educator/" }
 ```
 
 ### src/main.rs
@@ -2170,7 +2174,7 @@ pass = { type = "password-store", prefix = "rust-private-cli-template/" }
 ```rust
 use clap::Parser;
 use errgonomic::exit_result;
-use rust_private_cli_template::Command;
+use educator::Command;
 use std::process::ExitCode;
 
 #[tokio::main]
