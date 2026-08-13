@@ -474,6 +474,26 @@ You are running in a sandbox with limited network access.
 * If you need to run a network command, just do it without checking permissions (they will be enforced automatically)
 * If you need to read the data from other domains, use the web search tool (this tool is executed outside of sandbox)
 
+## Guidelines for `serde`
+
+### Requirements
+
+* Every input data type must derive `Serialize` and `Deserialize`
+* Every `Option`-wrapped field must have attributes:
+  * `#[serde(skip_serializing_if = "Option::is_none")]`
+* Every `OffsetDateTime` field must have attributes:
+  * `#[serde(with = "time::serde::rfc3339")]`
+* Every `Option<OffsetDateTime>` field must have attributes:
+  * `#[serde(with = "time::serde::rfc3339::option")]`
+* Every field that stores a physical value must be serialized as a map that includes at least two fields: `value` and `unit`
+  * `value` must be a primitive type
+  * `unit` must be a string that contains the unit name in singular form (for example: "nanosecond", "second", "minute", "kilogram", "meter")
+    * `unit` may contain a prefix (for example: "nano", "kilo")
+
+### Notes
+
+* It is recommended to use `serde_with` to reduce the code size by avoiding custom `Serialize`/`Deserialize` impls
+
 ## Guidelines for `subtype`
 
 * The macro calls that begin with `subtype` (for example, `subtype!` and `subtype_string!`) expand to newtypes.
@@ -616,6 +636,25 @@ Proxy command example:
 
 * Name: `DbCommand`
 * File: `src/command/db_command.rs` (attached to `src/command.rs`)
+
+## Project
+
+### Concepts
+
+#### `educator` package
+
+* Must have dependencies:
+  * `openai-utils`
+
+#### GeneratePresentationCommand
+
+* Must be callable as `talk generate`
+* Must have fields:
+  * `topic: String`
+* Must have methods:
+  * `run`
+    * Must call `get_response_from_openai` (from `openai-utils`)
+  * `prompt(topic: &str) -> String`
 
 ## Error handling
 
@@ -2143,6 +2182,7 @@ unused_import_braces = "deny"
 absolute_paths = "deny"
 
 [dependencies]
+openai-utils = { git = "ssh://git@github.com/spirehq/openai-utils.git", features = ["schemars"], optional = true }
 clap = { version = "4.5.11", features = ["derive", "env"] }
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 derive-new = "0.7.0"
@@ -2155,6 +2195,10 @@ stub-macro = { version = "0.2.1" }
 subtype = { git = "https://github.com/DenisGorbachev/subtype" }
 thiserror = "2.0.17"
 tokio = { version = "1.39.2", features = ["macros", "fs", "net", "rt", "rt-multi-thread"] }
+schemars = { version = "1.2.1" }
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = { version = "1.0.137" }
+askama = { version = "0.16.0", features = ["derive"] }
 ```
 
 ### fnox.toml
@@ -2173,8 +2217,8 @@ pass = { type = "password-store", prefix = "educator/" }
 
 ```rust
 use clap::Parser;
-use errgonomic::exit_result;
 use educator::Command;
+use errgonomic::exit_result;
 use std::process::ExitCode;
 
 #[tokio::main]
@@ -2201,4 +2245,6 @@ fn verify_cli() {
 mod command;
 
 pub use command::*;
+mod types;
+pub use types::*;
 ```

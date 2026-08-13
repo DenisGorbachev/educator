@@ -46,6 +46,7 @@ unused_import_braces = "deny"
 absolute_paths = "deny"
 
 [dependencies]
+openai-utils = { git = "ssh://git@github.com/spirehq/openai-utils.git", features = ["schemars"], optional = true }
 clap = { version = "4.5.11", features = ["derive", "env"] }
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 derive-new = "0.7.0"
@@ -58,9 +59,7 @@ stub-macro = { version = "0.2.1" }
 subtype = { git = "https://github.com/DenisGorbachev/subtype" }
 thiserror = "2.0.17"
 tokio = { version = "1.39.2", features = ["macros", "fs", "net", "rt", "rt-multi-thread"] }
-
-
-
-
-
-
+schemars = { version = "1.2.1" }
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = { version = "1.0.137" }
+askama = { version = "0.16.0", features = ["derive"] }
