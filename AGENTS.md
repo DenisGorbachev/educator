@@ -484,27 +484,9 @@ A function marked with `#[test]` or `#[tokio::test]`.
 
 #### Chat thread id
 
-## Guidelines for `serde`
-
-### Requirements
-
-* Every input data type must derive `Serialize` and `Deserialize`
-* Every `Option`-wrapped field must have attributes:
-  * `#[serde(skip_serializing_if = "Option::is_none")]`
-* Every `OffsetDateTime` field must have attributes:
-  * `#[serde(with = "time::serde::rfc3339")]`
-* Every `Option<OffsetDateTime>` field must have attributes:
-  * `#[serde(with = "time::serde::rfc3339::option")]`
-* Every field that stores a physical value must be serialized as a map that includes at least two fields: `value` and `unit`
-  * `value` must be a primitive type
-  * `unit` must be a string that contains the unit name in singular form (for example: "nanosecond", "second", "minute", "kilogram", "meter")
-    * `unit` may contain a prefix (for example: "nano", "kilo")
-
-### Notes
-
-* It is recommended to use `serde_with` to reduce the code size by avoiding custom `Serialize`/`Deserialize` impls
-
-## Guidelines for `subtype`
+- Must be a string
+- Must contain at least 3 characters
+- Must contain only uppercase characters
 
 Examples:
 
@@ -548,6 +530,22 @@ Examples:
 #### Publishable package
 
 A package that has a remote whose name contains `public` or `pre-public` and ends with `template`.
+
+### Guidelines for `serde`
+
+#### Requirements
+
+- Every input data type must derive `Serialize` and `Deserialize`
+- Every `Option`-wrapped field must have attributes:
+  - `#[serde(skip_serializing_if = "Option::is_none")]`
+- Every `OffsetDateTime` field must have attributes:
+  - `#[serde(with = "time::serde::rfc3339")]`
+- Every `Option<OffsetDateTime>` field must have attributes:
+  - `#[serde(with = "time::serde::rfc3339::option")]`
+
+#### Notes
+
+- It is recommended to use `serde_with` to reduce the code size by avoiding custom `Serialize`/`Deserialize` impls
 
 ### Guidelines for `subtype`
 
@@ -609,6 +607,8 @@ fn verify_cli() {
 ##### File `src/command.rs`
 
 - Must define a [command-like struct](#command-like-struct) named `Command`
+  - Must have attributes:
+    - `#[command(author, version, about, propagate_version = true, flatten_help = true, disable_help_subcommand = true)]`
 - Must define a [subcommand-like enum](#subcommand-like-enum) named `Subcommand`
 
 Example:
@@ -620,7 +620,7 @@ use errgonomic::map_err;
 use thiserror::Error;
 
 #[derive(clap::Parser, Debug)]
-#[command(author, version, about, propagate_version = true)]
+#[command(author, version, about, propagate_version = true, flatten_help = true, disable_help_subcommand = true)]
 pub struct Command {
     #[command(subcommand)]
     subcommand: Subcommand,
@@ -660,15 +660,21 @@ pub use print_command::*;
 
 A struct that contains fields for CLI arguments.
 
-* Must have a name that is a concatenation of all command names leading up to and including this command name, and ends with `Command` (see example above)
-* Must derive `clap::Parser`
-* Must be attached to a parent module: if it's a top-level command: `src/lib.rs`, else: `src/command.rs`
-* For each field:
-  * If the field has a collection type (e.g. `Vec`), then it must have attribute `num_args = 1..`
-* May contain a `subcommand` field annotated with `#[command(subcommand)]`
-* Must have a `pub async fn run`
-  * Must return a `Result` with `ExitCode`
-  * If it contains a `subcommand` field: must match on `subcommand` and call `run` of each command
+- Must have a name that is a concatenation of all command names leading up to and including this command name, and ends with `Command` (see example above)
+- Must have at least the following attributes:
+  - `derive`
+    - Must contain at least:
+      - `Parser` (`use clap::Parser`)
+  - `command`
+    - Must contain at least:
+      - `flatten_help = true`
+- Must be attached to a parent module: if it's a top-level command: `src/lib.rs`, else: `src/command.rs`
+- For each field:
+  - If the field has a collection type (e.g. `Vec`), then it must have attribute `num_args = 1..`
+- May contain a `subcommand` field annotated with `#[command(subcommand)]`
+- Must have a `pub async fn run`
+  - Must return a `Result` with `ExitCode`
+  - If it contains a `subcommand` field: must match on `subcommand` and call `run` of each command
 
 Command example:
 
@@ -681,7 +687,10 @@ Command example:
 An enum that contains variants for CLI subcommands.
 
 - Must have a name that is a concatenation of all command names leading up to and including this command name, and ends with `Subcommand` (see example above)
-- Must derive `clap::Subcommand`
+- Must have at least the following attributes:
+  - `derive`
+    - Must contain at least:
+      - `Subcommand` (`use clap::Subcommand`)
 - Must be located in the same file as its parent command struct
 - Each variant must be a tuple variant containing exactly one command
 
@@ -699,26 +708,26 @@ Proxy command example:
 - Name: `DbCommand`
 - File: `src/command/db_command.rs` (attached to `src/command.rs`)
 
-## Project
+### Project
 
-### Concepts
+#### Concepts
 
-#### `educator` package
+##### `educator` package
 
-* Must have dependencies:
-  * `openai-utils`
+- Must have dependencies:
+  - `openai-utils`
 
-#### GeneratePresentationCommand
+##### GeneratePresentationCommand
 
-* Must be callable as `talk generate`
-* Must have fields:
-  * `topic: String`
-* Must have methods:
-  * `run`
-    * Must call `get_response_from_openai` (from `openai-utils`)
-  * `prompt(topic: &str) -> String`
+- Must be callable as `talk generate`
+- Must have fields:
+  - `topic: String`
+- Must have methods:
+  - `run`
+    - Must call `get_response_from_openai` (from `openai-utils`)
+  - `prompt(topic: &str) -> String`
 
-## Error handling
+### Error handling
 
 #### Principle
 
@@ -2158,6 +2167,7 @@ cfg_if::cfg_if! {
 
 ```shell
 origin
+repoconf-rust-private-cli-template
 ```
 
 ### Project files
@@ -2250,15 +2260,8 @@ run = [{ task = "git:validate-commit" }]
 hide = true
 run = [{ task = "git:install-hooks" }]
 
-* Must have a name that is a concatenation of all command names leading up to and including this command name, and ends with `Command` (see example above)
-* Must derive `clap::Parser`
-* Must be attached to a parent module: if it's a top-level command: `src/lib.rs`, else: `src/command.rs`
-* For each field:
-  * If the field has a collection type (e.g. `Vec`), then it must have attribute `num_args = 1..`
-* May contain a `subcommand` field annotated with `#[command(subcommand)]`
-* Must have a `pub async fn run`
-  * Must return a `Result` with `ExitCode`
-  * If it contains a `subcommand` field: must match on `subcommand` and call `run` of each command
+[tasks."commit-msg"]
+run = 'mise run --output interleave commitlint -- --edit "$@"'
 
 [tasks."fix"]
 depends = ["fix:code", "fix:aux"]
@@ -2336,15 +2339,32 @@ run = [{ task = "test:code", args = ["--cargo-quiet", "--hide-progress-bar", "--
 #### fnox.toml
 
 ```toml
-[package]
-name = "educator"
+#:schema https://fnox.jdx.dev/schema.json
+
+if_missing = "error"
+env = "exec"
+
+[providers]
+keychain = { type = "keychain", service = "educator" }
+pass = { type = "password-store", prefix = "educator/" }
+age = { type = "age", recipients = [
+    "age1sf4r4amev2svqr6llwg8hgtz9n7p5qdh7hh0mavcshzfrmgfduksnq3hql",
+    "age1605gsnxpe536sprwccyumq74veg0g80u55n8ggems0t8deau6qdsfnq3m3"
+] }
+```
+
+#### Cargo.toml
+
+```toml
+[workspace]
+resolver = "3"
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.93.1"
-description = ""
 homepage = "https://github.com/DenisGorbachev/educator"
 repository = "https://github.com/DenisGorbachev/educator"
-readme = "README.md"
 keywords = []
 categories = []
 exclude = [
@@ -2367,11 +2387,9 @@ exclude = [
     ".yolobox"
 ]
 
-[package.metadata.details]
+[workspace.metadata.details]
+name = "educator"
 title = ""
-tagline = ""
-summary = ""
-announcement = ""
 readme = { }
 
 [workspace.lints.rust]
@@ -2385,11 +2403,10 @@ absolute_paths = "deny"
 arithmetic_side_effects = "deny"
 
 [package]
-name = "rust-private-cli-template"
+name = "educator"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-description = "A template for creating Rust private CLI apps with Clap."
 homepage.workspace = true
 repository.workspace = true
 keywords.workspace = true
@@ -2397,22 +2414,21 @@ categories.workspace = true
 exclude.workspace = true
 
 [package.metadata.details]
-title = "Rust private CLI template"
+title = ""
 
 [lints]
 workspace = true
 
 [dependencies]
-openai-utils = { git = "ssh://git@github.com/spirehq/openai-utils.git", features = ["schemars"], optional = true }
 clap = { version = "4.5.11", features = ["derive", "env"] }
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 derive-new = "0.7.0"
 derive_more = { version = "2.1.1", features = ["full"] }
 errgonomic = { git = "https://github.com/DenisGorbachev/errgonomic" }
-itertools = "0.14.0"
+itertools = "0.15.0"
 standard-traits = { git = "https://github.com/DenisGorbachev/standard-traits" }
-strum = { version = "0.27.2", features = ["derive"] }
-stub-macro = { version = "0.2.1" }
+strum = { version = "0.28.0", features = ["derive"] }
+stub-macro = { version = "0.3.1" }
 subtype = { git = "https://github.com/DenisGorbachev/subtype" }
 thiserror = "2.0.17"
 tokio = { version = "1.39.2", features = ["macros", "fs", "net", "rt", "rt-multi-thread"] }
@@ -2420,18 +2436,6 @@ schemars = { version = "1.2.1" }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = { version = "1.0.137" }
 askama = { version = "0.16.0", features = ["derive"] }
-```
-
-#### fnox.toml
-
-```toml
-#:schema https://fnox.jdx.dev/schema.json
-
-if_missing = "error"
-
-[providers]
-keychain = { type = "keychain", service = "educator" }
-pass = { type = "password-store", prefix = "educator/" }
 ```
 
 #### src/lib.rs
@@ -2442,6 +2446,8 @@ pass = { type = "password-store", prefix = "educator/" }
 mod command;
 
 pub use command::*;
+mod types;
+pub use types::*;
 ```
 
 #### src/main.rs
@@ -2464,18 +2470,4 @@ fn verify_cli() {
     use clap::CommandFactory;
     Command::command().debug_assert();
 }
-```
-
-### src/lib.rs
-
-```rust
-//! This is a module-level comment for a Rust lib
-
-#![deny(clippy::arithmetic_side_effects)]
-
-mod command;
-
-pub use command::*;
-mod types;
-pub use types::*;
 ```
